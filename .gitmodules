@@ -1,0 +1,3 @@
+[submodule "third-party/yazi"]
+	path = third-party/yazi
+	url = git@github.com:dinhphucaz2005/yazi.git
