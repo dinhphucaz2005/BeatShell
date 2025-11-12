@@ -3,6 +3,7 @@ SCRIPT_PATH="$(realpath "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 BEAT_TUI="beattui"
 BEAT_SERVER="beatserver"
+PWD=$HOME/Music/BeatShell/metadata
 
 export PATH="$SCRIPT_DIR/bin:$PATH"
 
