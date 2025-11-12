@@ -1,3 +1,7 @@
 [submodule "third-party/yazi"]
 	path = third-party/yazi
 	url = git@github.com:dinhphucaz2005/yazi.git
+[submodule "third-party/MusicNDP"]
+	path = third-party/MusicNDP
+	url = git@github.com:dinhphucaz2005/MusicNDP.git
+	branch = youtube
