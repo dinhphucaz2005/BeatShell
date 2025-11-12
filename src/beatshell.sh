@@ -2,22 +2,27 @@
 SCRIPT_PATH="$(realpath "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 BEAT_TUI="beattui"
+BEAT_CMD="beatcmd"
 BEAT_SERVER="beatserver"
 PWD=$HOME/Music/BeatShell/metadata
 
 export PATH="$SCRIPT_DIR/bin:$PATH"
 
 start_beat_server() {
-  if pgrep -x "beat_server" > /dev/null; then
-    echo "beat_server is already running."
+  if pgrep "$BEAT_SERVER" > /dev/null; then
+    echo "$BEAT_SERVER is already running."
   else
-    echo "Starting beat_server..."
+    echo "Starting $BEAT_SERVER``"
     "$SCRIPT_DIR/bin/$BEAT_SERVER" &
     sleep 2
-    echo "beat_server started."
+    echo "$BEAT_SERVER started."
   fi
 }
 
 start_beat_server
+
+if [ -n "$1" ]; then
+  "$BEAT_CMD" "--play" "$1"
+fi
 
 $BEAT_TUI

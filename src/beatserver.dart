@@ -13,10 +13,16 @@ class YoutubeItemMetadata {
   }
 }
 
+late final HttpServer server;
 Process? currentPlayer;
 
-Future<void> main() async {
-  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8080);
+Future<void> main(List<String> args) async {
+  try {
+    server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8080);
+  } catch (e) {
+    print('Failed to bind server: $e');
+    return;
+  }
   print('Server running at http://${server.address.address}:${server.port}/');
 
   await for (HttpRequest request in server) {
