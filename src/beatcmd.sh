@@ -3,7 +3,7 @@
 SCRIPT_PATH="$(realpath "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 
-BEAT_SEARCH="$SCRIPT_DIR/beatsearch.kexe"
+BEAT_SEARCH="$SCRIPT_DIR/beatsearch"
 
 case "$1" in
   --search)
