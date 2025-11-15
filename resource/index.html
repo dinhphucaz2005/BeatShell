@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Remote Controller</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --light: #f8fafc;
+            --gray: #6b7280;
+            --card-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--gray);
+            font-size: 1.1em;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: var(--light);
+            border-radius: 12px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--danger);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: var(--secondary);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .now-playing {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .now-playing h3 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .current-track {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .playback-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+
+        .section-title i {
+            font-size: 1.2em;
+        }
+
+        .play-controls {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-play {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-stop {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-pause {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-resume {
+            background: var(--primary);
+            color: white;
+        }
+
+        .control-group {
+            background: var(--light);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 10px 0;
+        }
+
+        .control-label {
+            min-width: 80px;
+            font-weight: 500;
+        }
+
+        .slider {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            background: #ddd;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        .value-display {
+            min-width: 50px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .quick-play-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-quick {
+            background: #8b5cf6;
+            color: white;
+            font-size: 13px;
+        }
+
+        .presets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-preset {
+            background: var(--primary);
+            color: white;
+            font-size: 13px;
+        }
+
+        .logs-container {
+            height: 300px;
+            overflow-y: auto;
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 4px solid transparent;
+        }
+
+        .log-entry.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left-color: #3b82f6;
+        }
+
+        .log-entry.success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left-color: #10b981;
+        }
+
+        .log-entry.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left-color: #ef4444;
+        }
+
+        .log-entry.warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left-color: #f59e0b;
+        }
+
+        .system-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: var(--light);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 5px 0;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: var(--gray);
+        }
+
+        .connection-list {
+            margin-top: 15px;
+        }
+
+        .client-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--light);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .client-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .tab-container {
+            margin-top: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e5e7eb;
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .keyboard-shortcuts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .shortcut-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: var(--light);
+            border-radius: 6px;
+        }
+
+        .shortcut-keys {
+            background: var(--dark);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: monospace;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .volume-icon {
+            color: var(--gray);
+            font-size: 1.2em;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header card">
+        <h1><i class="fas fa-music"></i> Audio Remote Controller</h1>
+        <p>Điều khiển phát nhạc từ xa với giao diện hiện đại</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Status Bar -->
+        <div class="card">
+            <div class="status-bar">
+                <div class="connection-status">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Đang kết nối...</span>
+                </div>
+                <div id="clientCount">
+                    <i class="fas fa-users"></i>
+                    <span id="clientCountText">0 clients</span>
+                </div>
+                <div id="uptime">
+                    <i class="fas fa-clock"></i>
+                    <span id="uptimeText">00:00:00</span>
+                </div>
+            </div>
+
+            <!-- Now Playing -->
+            <div class="now-playing">
+                <h3><i class="fas fa-play-circle"></i> ĐANG PHÁT</h3>
+                <div class="current-track" id="currentTrack">Chưa có bài hát nào</div>
+                <div class="playback-info">
+                    <span id="playbackTime">00:00</span>
+                    <span id="playbackSource">Remote Controller</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Sections -->
+        <div class="card">
+            <div class="control-section">
+                <h3 class="section-title"><i class="fas fa-gamepad"></i> Điều khiển cơ bản</h3>
+                <div class="play-controls">
+                    <button class="btn btn-play" onclick="playYouTube()">
+                        <i class="fas fa-play"></i> Phát
+                    </button>
+                    <button class="btn btn-pause" onclick="pauseAudio()">
+                        <i class="fas fa-pause"></i> Tạm dừng
+                    </button>
+                    <button class="btn btn-resume" onclick="resumeAudio()">
+                        <i class="fas fa-play"></i> Tiếp tục
+                    </button>
+                    <button class="btn btn-stop" onclick="stopAudio()">
+                        <i class="fas fa-stop"></i> Dừng
+                    </button>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-row">
+                        <span class="control-label"><i class="fas fa-volume-up"></i> Volume</span>
+                        <input type="range" class="slider" id="volumeSlider"
+                               min="0" max="100" value="50" oninput="updateVolume(this.value)">
+                        <span class="value-display" id="volumeValue">50%</span>
+                    </div>
+
+                    <div class="control-row">
+                        <span class="control-label"><i class="fas fa-forward"></i> Seek</span>
+                        <input type="range" class="slider" id="seekSlider"
+                               min="0" max="100" value="0" oninput="updateSeek(this.value)">
+                        <span class="value-display" id="seekValue">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3 class="section-title"><i class="fab fa-youtube"></i> Phát nhạc từ YouTube</h3>
+                <div class="input-group">
+                    <label for="youtubeId"><i class="fas fa-link"></i> ID Video YouTube</label>
+                    <input type="text" id="youtubeId" placeholder="VD: dQw4w9WgXcQ" onkeypress="handleEnterKey(event)">
+                </div>
+                <div class="input-group">
+                    <label for="videoTitle"><i class="fas fa-heading"></i> Tiêu đề (tùy chọn)</label>
+                    <input type="text" id="videoTitle" placeholder="Tên bài hát" onkeypress="handleEnterKey(event)">
+                </div>
+                <button class="btn btn-play" onclick="playYouTube()" style="width: 100%;">
+                    <i class="fab fa-youtube"></i> Phát từ YouTube
+                </button>
+
+                <div class="quick-play-grid">
+                    <button class="btn btn-quick" onclick="quickPlay('dQw4w9WgXcQ', 'Never Gonna Give You Up')">
+                        <i class="fas fa-music"></i> Rick Roll
+                    </button>
+                    <button class="btn btn-quick" onclick="quickPlay('kJQP7kiw5Fk', 'Despacito')">
+                        <i class="fas fa-music"></i> Despacito
+                    </button>
+                    <button class="btn btn-quick" onclick="quickPlay('9bZkp7q19f0', 'Gangnam Style')">
+                        <i class="fas fa-music"></i> Gangnam Style
+                    </button>
+                    <button class="btn btn-quick" onclick="quickPlay('JGwWNGJdvx8', 'Shape of You')">
+                        <i class="fas fa-music"></i> Shape of You
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs -->
+        <div class="card">
+            <h3 class="section-title"><i class="fas fa-terminal"></i> Nhật ký hoạt động</h3>
+            <div class="logs-container" id="logs"></div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <!-- System Info -->
+        <div class="card">
+            <h3 class="section-title"><i class="fas fa-info-circle"></i> Thông tin hệ thống</h3>
+            <div class="system-stats">
+                <div class="stat-card">
+                    <i class="fas fa-play-circle stat-icon"></i>
+                    <div class="stat-value" id="statPlaying">0</div>
+                    <div class="stat-label">Đang phát</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-users stat-icon"></i>
+                    <div class="stat-value" id="statClients">0</div>
+                    <div class="stat-label">Clients</div>
+                </div>
+            </div>
+
+            <div class="connection-list">
+                <h4><i class="fas fa-network-wired"></i> Kết nối hiện tại</h4>
+                <div id="clientList">
+                    <div class="client-item">
+                        <div class="client-avatar">Y</div>
+                        <span>Bạn</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Presets -->
+        <div class="card">
+            <h3 class="section-title"><i class="fas fa-sliders-h"></i> Cài đặt nhanh</h3>
+            <div class="presets-grid">
+                <button class="btn btn-preset" onclick="setVolume(25)">
+                    <i class="fas fa-volume-down"></i> Volume 25%
+                </button>
+                <button class="btn btn-preset" onclick="setVolume(50)">
+                    <i class="fas fa-volume"></i> Volume 50%
+                </button>
+                <button class="btn btn-preset" onclick="setVolume(75)">
+                    <i class="fas fa-volume-up"></i> Volume 75%
+                </button>
+                <button class="btn btn-preset" onclick="setVolume(100)">
+                    <i class="fas fa-volume-up"></i> Volume 100%
+                </button>
+            </div>
+        </div>
+
+        <!-- Keyboard Shortcuts -->
+        <div class="card">
+            <h3 class="section-title"><i class="fas fa-keyboard"></i> Phím tắt</h3>
+            <div class="keyboard-shortcuts">
+                <div class="shortcut-item">
+                    <span>Phát/Tạm dừng</span>
+                    <span class="shortcut-keys">Space</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Dừng</span>
+                    <span class="shortcut-keys">S</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Tăng volume</span>
+                    <span class="shortcut-keys">↑</span>
+                </div>
+                <div class="shortcut-item">
+                    <span>Giảm volume</span>
+                    <span class="shortcut-keys">↓</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    class AudioController {
+        constructor() {
+            this.ws = null;
+            this.isConnected = false;
+            this.reconnectAttempts = 0;
+            this.maxReconnectAttempts = 5;
+            this.startTime = Date.now();
+            this.connectedClients = 0;
+            this.init();
+        }
+
+        init() {
+            this.connect();
+            this.setupEventListeners();
+            this.startUptimeCounter();
+        }
+
+        connect() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws`;
+
+            try {
+                this.ws = new WebSocket(wsUrl);
+                this.setupWebSocketHandlers();
+            } catch (error) {
+                this.log(`Lỗi kết nối: ${error}`, 'error');
+                this.scheduleReconnect();
+            }
+        }
+
+        setupWebSocketHandlers() {
+            this.ws.onopen = () => {
+                this.isConnected = true;
+                this.reconnectAttempts = 0;
+                this.updateConnectionStatus(true);
+                this.log('✅ Đã kết nối đến server', 'success');
+            };
+
+            this.ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    this.handleMessage(data);
+                } catch (error) {
+                    this.log(`❌ Lỗi xử lý tin nhắn: ${error}`, 'error');
+                }
+            };
+
+            this.ws.onclose = () => {
+                this.isConnected = false;
+                this.updateConnectionStatus(false);
+                this.log('🔌 Mất kết nối với server', 'error');
+                this.scheduleReconnect();
+            };
+
+            this.ws.onerror = (error) => {
+                this.log(`❌ Lỗi WebSocket: ${error}`, 'error');
+            };
+        }
+
+        setupEventListeners() {
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+
+                switch(e.key) {
+                    case ' ':
+                        e.preventDefault();
+                        this.togglePlayPause();
+                        break;
+                    case 's':
+                    case 'S':
+                        e.preventDefault();
+                        stopAudio();
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        this.adjustVolume(10);
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        this.adjustVolume(-10);
+                        break;
+                }
+            });
+
+            // Volume slider
+            const volumeSlider = document.getElementById('volumeSlider');
+            volumeSlider.addEventListener('input', (e) => {
+                document.getElementById('volumeValue').textContent = `${e.target.value}%`;
+            });
+        }
+
+        handleMessage(data) {
+            switch (data.type) {
+                case 'connected':
+                    this.log('🎉 Kết nối thành công với audio server', 'success');
+                    break;
+                case 'playback_started':
+                    document.getElementById('currentTrack').textContent = data.title || 'Unknown';
+                    document.getElementById('currentTrack').classList.add('pulse');
+                    this.log(`🎵 Đang phát: ${data.title}`, 'success');
+                    document.getElementById('statPlaying').textContent = '1';
+                    break;
+                case 'playback_stopped':
+                    document.getElementById('currentTrack').textContent = 'Chưa có bài hát nào';
+                    document.getElementById('currentTrack').classList.remove('pulse');
+                    this.log('⏹️ Đã dừng phát nhạc', 'info');
+                    document.getElementById('statPlaying').textContent = '0';
+                    break;
+                case 'playback_ended':
+                    document.getElementById('currentTrack').textContent = 'Chưa có bài hát nào';
+                    document.getElementById('currentTrack').classList.remove('pulse');
+                    this.log('🏁 Bài hát đã kết thúc', 'info');
+                    document.getElementById('statPlaying').textContent = '0';
+                    break;
+                case 'playback_paused':
+                    this.log('⏸️ Đã tạm dừng', 'warning');
+                    break;
+                case 'playback_resumed':
+                    this.log('▶️ Đã tiếp tục phát', 'success');
+                    break;
+                case 'error':
+                    this.log(`❌ Lỗi: ${data.message}`, 'error');
+                    break;
+                default:
+                    this.log(`📨 Tin nhắn từ server: ${JSON.stringify(data)}`, 'info');
+            }
+
+            // Update client count
+            if (data.connectedClients !== undefined) {
+                this.updateClientCount(data.connectedClients);
+            }
+        }
+
+        togglePlayPause() {
+            if (document.getElementById('statPlaying').textContent === '1') {
+                pauseAudio();
+            } else {
+                // Implement resume or play new
+                resumeAudio();
+            }
+        }
+
+        adjustVolume(change) {
+            const slider = document.getElementById('volumeSlider');
+            let newVolume = parseInt(slider.value) + change;
+            newVolume = Math.max(0, Math.min(100, newVolume));
+            slider.value = newVolume;
+            document.getElementById('volumeValue').textContent = `${newVolume}%`;
+            setVolume(newVolume);
+        }
+
+        updateConnectionStatus(connected) {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+
+            if (connected) {
+                statusDot.className = 'status-dot connected';
+                statusText.textContent = 'Đã kết nối';
+                statusText.style.color = '#10b981';
+            } else {
+                statusDot.className = 'status-dot';
+                statusText.textContent = 'Mất kết nối';
+                statusText.style.color = '#ef4444';
+            }
+        }
+
+        updateClientCount(count) {
+            this.connectedClients = count;
+            document.getElementById('clientCountText').textContent = `${count} clients`;
+            document.getElementById('statClients').textContent = count;
+        }
+
+        startUptimeCounter() {
+            setInterval(() => {
+                const uptime = Math.floor((Date.now() - this.startTime) / 1000);
+                const hours = Math.floor(uptime / 3600);
+                const minutes = Math.floor((uptime % 3600) / 60);
+                const seconds = uptime % 60;
+                document.getElementById('uptimeText').textContent =
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        sendCommand(command) {
+            if (this.isConnected && this.ws) {
+                this.ws.send(JSON.stringify(command));
+                this.log(`📤 Gửi lệnh: ${command.action}`, 'info');
+            } else {
+                this.log('❌ Chưa kết nối đến server', 'error');
+            }
+        }
+
+        scheduleReconnect() {
+            if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                this.reconnectAttempts++;
+                const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+                this.log(`🔄 Thử kết nối lại sau ${delay/1000} giây... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`, 'info');
+
+                setTimeout(() => this.connect(), delay);
+            } else {
+                this.log('💥 Đã vượt quá số lần thử kết nối lại tối đa', 'error');
+            }
+        }
+
+        log(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type} fade-in`;
+            logEntry.innerHTML = `[${new Date().toLocaleTimeString()}] ${message}`;
+
+            logs.appendChild(logEntry);
+            logs.scrollTop = logs.scrollHeight;
+        }
+    }
+
+    // Khởi tạo controller
+    const controller = new AudioController();
+
+    // Hàm điều khiển
+    function playAudio() {
+        controller.sendCommand({ action: 'play' });
+    }
+
+    function stopAudio() {
+        controller.sendCommand({ action: 'stop' });
+    }
+
+    function pauseAudio() {
+        controller.sendCommand({ action: 'pause' });
+    }
+
+    function resumeAudio() {
+        controller.sendCommand({ action: 'resume' });
+    }
+
+    function setVolume(volume) {
+        controller.sendCommand({ action: 'volume', volume: parseInt(volume) });
+    }
+
+    function updateVolume(volume) {
+        setVolume(volume);
+    }
+
+    function updateSeek(value) {
+        const seconds = Math.floor((value / 100) * 180); // Giả sử bài hát dài 3 phút
+        controller.sendCommand({ action: 'seek', seconds: seconds });
+    }
+
+    function playYouTube() {
+        const youtubeId = document.getElementById('youtubeId').value.trim();
+        const title = document.getElementById('videoTitle').value.trim();
+
+        if (!youtubeId) {
+            controller.log('❌ Vui lòng nhập ID video YouTube', 'error');
+            return;
+        }
+
+        controller.sendCommand({
+            action: 'play',
+            id: youtubeId,
+            title: title || `YouTube Video ${youtubeId}`
+        });
+
+        // Clear inputs
+        document.getElementById('youtubeId').value = '';
+        document.getElementById('videoTitle').value = '';
+    }
+
+    function quickPlay(id, title) {
+        controller.sendCommand({
+            action: 'play',
+            id: id,
+            title: title
+        });
+    }
+
+    function handleEnterKey(event) {
+        if (event.key === 'Enter') {
+            playYouTube();
+        }
+    }
+
+    // Thêm hiệu ứng cho các nút
+    document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 150);
+        });
+    });
+
+    // Hiển thị thông báo chào mừng
+    setTimeout(() => {
+        controller.log('🎉 Chào mừng đến với Audio Remote Controller!', 'success');
+        controller.log('💡 Sử dụng Space để phát/tạm dừng, ↑↓ để điều chỉnh volume', 'info');
+    }, 1000);
+</script>
+</body>
+</html>
