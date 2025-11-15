@@ -94,6 +94,8 @@ build_beat_server() {
     echo "Building beatserver ($BUILD_TYPE-$BUILD_PLATFORM)..."
     cd "$PROJECT_DIR" || error_exit "Cannot enter project"
 
+    rm -rf "$TARGET_DIR/bin/beatserver$BIN_EXT"
+
     dart compile exe "$PROJECT_DIR/src/beatserver.dart" \
         -o "$TARGET_DIR/bin/beatserver$BIN_EXT"
 }
